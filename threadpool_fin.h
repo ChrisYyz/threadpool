@@ -4,10 +4,10 @@
 #include <iostream>
 #include <vector>
 #include <queue>
-#include <memory> // ÖÇÄÜÖ¸Õë
-#include <atomic> // Ô­×Ó²Ù×÷ - ÇáÁ¿Ëø
-#include <mutex> // »¥³âËø
-#include <condition_variable> // Ìõ¼ş±äÁ¿
+#include <memory> 
+#include <atomic> 
+#include <mutex> 
+#include <condition_variable> 
 #include <functional>
 #include <unordered_map>
 #include <thread>
@@ -17,16 +17,16 @@ const int TASK_MAX_THRESHHOLD = INT32_MAX;
 const int THREAD_MAX_THRESHHOLD = 200;
 const int THREAD_MAX_IDLE_TIME = 60; // Unit: second
 
-//Ïß³ÌÀà
+//çº¿ç¨‹ç±»
 class Thread
 {
 public:
-	using ThreadFunc = std::function<void(int)>; // Ïß³Ìº¯Êı¶ÔÏóÀàĞÍ
+	using ThreadFunc = std::function<void(int)>; // çº¿ç¨‹å‡½æ•°å¯¹è±¡ç±»å‹
 	void start()
 	{
-		// ´´½¨Ò»¸öÏß³ÌÀ´Ö´ĞĞÏß³Ìº¯Êı
-		std::thread t(func_, threadID_); // Ïß³Ì¶ÔÏót ºÍÏß³Ìº¯Êıfunc_
-		t.detach(); // ·ÖÀëÏß³Ì, ·ÀÖ¹×÷ÓÃÓò½áÊø£¬Ïß³Ì¹Òµô
+		// åˆ›å»ºä¸€ä¸ªçº¿ç¨‹æ¥æ‰§è¡Œçº¿ç¨‹å‡½æ•°
+		std::thread t(func_, threadID_); // çº¿ç¨‹å¯¹è±¡t å’Œçº¿ç¨‹å‡½æ•°func_
+		t.detach(); // åˆ†ç¦»çº¿ç¨‹, é˜²æ­¢ä½œç”¨åŸŸç»“æŸï¼Œçº¿ç¨‹æŒ‚æ‰
 	}
 
 	Thread(ThreadFunc func)
@@ -43,7 +43,7 @@ public:
 private:
 	ThreadFunc func_;
 	static int generateID_;
-	int threadID_; // ±£´æÏß³ÌID£»
+	int threadID_; // ä¿å­˜çº¿ç¨‹IDï¼›
 };
 
 int Thread::generateID_ = 0;
@@ -52,8 +52,8 @@ int Thread::generateID_ = 0;
 
 enum class PoolMode
 {
-	MODE_FIXED,  // ¹Ì¶¨ÊıÁ¿
-	MODE_CACHED, // ¶¯Ì¬Ôö³¤
+	MODE_FIXED,  // å›ºå®šæ•°é‡
+	MODE_CACHED, // åŠ¨æ€å¢é•¿
 };
 
 class ThreadPool
@@ -101,20 +101,20 @@ public:
 			threadMaxThreshHold_ = threshHold;
 	}
 
-	//Ê¹ÓÃ¿É±ä²ÎÄ£°å±à³Ì£¬½ÓÊÜÈÎÒâº¯ÊıºÍ²»Í¬ÊıÁ¿µÄ²ÎÊı
+	//ä½¿ç”¨å¯å˜å‚æ¨¡æ¿ç¼–ç¨‹ï¼Œæ¥å—ä»»æ„å‡½æ•°å’Œä¸åŒæ•°é‡çš„å‚æ•°
 	template<class Func, class... Args>
 	auto submitTask(Func&& func, Args&&... args) -> std::future<decltype(func(args...))>
 	{
 		// package task -> into task queue
 		using RType = decltype(func(args...));
 		auto task = std::make_shared<std::packaged_task<RType()>>(
-			std::bind(std::forward<Func>(func), std::forward<Args>(args)...)); // °ó¶¨Æ÷£¬ ²ÎÊı°ó¶¨ÔÚº¯Êı¶ÔÏóÉÏ
+			std::bind(std::forward<Func>(func), std::forward<Args>(args)...)); // ç»‘å®šå™¨ï¼Œ å‚æ•°ç»‘å®šåœ¨å‡½æ•°å¯¹è±¡ä¸Š
 		std::future<RType> result = task->get_future();
 
-		//»ñÈ¡Ëø
+		//è·å–é”
 		std::unique_lock<std::mutex> lock(taskQueMtx_);
 
-		//Ïß³ÌÍ¨ĞÅ µÈ´ıÈÎÎñ·ÅÈëÈÎÎñ¶ÓÁĞ£¨¶ÓÁĞãĞÖµ£© ³¬Ê±·µ»ØÈÎÎñÌá½»Ê§°Ü
+		//çº¿ç¨‹é€šä¿¡ ç­‰å¾…ä»»åŠ¡æ”¾å…¥ä»»åŠ¡é˜Ÿåˆ—ï¼ˆé˜Ÿåˆ—é˜ˆå€¼ï¼‰ è¶…æ—¶è¿”å›ä»»åŠ¡æäº¤å¤±è´¥
 
 		if (!notFull_.wait_for(lock, std::chrono::seconds(1), [&]() {
 			return taskQue_.size() < taskQueMaxThreshHold_; }))
@@ -126,25 +126,25 @@ public:
 			return task->get_future();
 		}
 
-		//¶ÓÁĞ¿ÕÓà£¬·ÅÈÎÎñ
+		//é˜Ÿåˆ—ç©ºä½™ï¼Œæ”¾ä»»åŠ¡
 		//taskQue_.emplace(sp);
 		//using Task = std::function<void()>;
 		taskQue_.emplace([task]() {(*task)();}); // labmda
 		taskSize_++;
 
-		// ×´Ì¬notFull notEmpty - Í¨ÖªÏß³Ì
+		// çŠ¶æ€notFull notEmpty - é€šçŸ¥çº¿ç¨‹
 		notEmpty_.notify_all();
-		// cachedÄ£Ê½ - ÊÇ·ñĞèÒª´´½¨ĞÂÏß³Ì
+		// cachedæ¨¡å¼ - æ˜¯å¦éœ€è¦åˆ›å»ºæ–°çº¿ç¨‹
 		if (poolMode_ == PoolMode::MODE_CACHED
 			&& taskSize_ > idleThreadSize_
 			&& curThreadSize_ < threadMaxThreshHold_)
 		{
-			//´´½¨¶ÔÏó
+			//åˆ›å»ºå¯¹è±¡
 			std::cout << "create new thread" << std::endl;
 			auto ptr = std::make_unique<Thread>(std::bind(&ThreadPool::threadFunc, this, std::placeholders::_1));
 			int threadID = ptr->getID();
 			threads_.emplace(threadID, std::move(ptr));
-			//Æô¶¯
+			//å¯åŠ¨
 			threads_[threadID]->start();
 			// Update Thread status
 			curThreadSize_++;
@@ -156,13 +156,13 @@ public:
 
 	void start(int initThreadSize = std::thread::hardware_concurrency())
 	{
-		//ÉèÖÃÏß³Ì³Ø×´Ì¬
+		//è®¾ç½®çº¿ç¨‹æ± çŠ¶æ€
 		isPoolRunning_ = true;
-		// Ïß³Ì³õÊ¼¸öÊı
+		// çº¿ç¨‹åˆå§‹ä¸ªæ•°
 		initThreadSize_ = initThreadSize;
 		curThreadSize_ = initThreadSize;
 
-		//´´½¨Ïß³Ì¶ÔÏó
+		//åˆ›å»ºçº¿ç¨‹å¯¹è±¡
 		for (int i = 0; i < initThreadSize_; i++)
 		{
 			auto ptr = std::make_unique<Thread>(std::bind(&ThreadPool::threadFunc, this, std::placeholders::_1));
@@ -170,7 +170,7 @@ public:
 			threads_.emplace(threadID, std::move(ptr));
 		}
 
-		// Æô¶¯Ïß³Ì
+		// å¯åŠ¨çº¿ç¨‹
 		for (int i = 0; i < initThreadSize_; i++)
 		{
 			threads_[i]->start();
@@ -178,12 +178,12 @@ public:
 		}
 	}
 
-	// ½ûÖ¹Ê¹ÓÃ
+	// ç¦æ­¢ä½¿ç”¨
 	ThreadPool(const ThreadPool&) = delete;
 	ThreadPool& operator=(const ThreadPool&) = delete;
 
 private:
-	// ¶¨ÒåÏß³Ìº¯Êı
+	// å®šä¹‰çº¿ç¨‹å‡½æ•°
 	void threadFunc(int threadID)
 	{
 		auto lastTime = std::chrono::high_resolution_clock().now();
@@ -194,8 +194,8 @@ private:
 			{
 				std::unique_lock<std::mutex> lock(taskQueMtx_);
 
-				std::cout << "³¢ÊÔ»ñÈ¡ÈÎÎñ" << std::this_thread::get_id() << std::endl;
-				// cachedÄ£Ê½
+				std::cout << "å°è¯•è·å–ä»»åŠ¡" << std::this_thread::get_id() << std::endl;
+				// cachedæ¨¡å¼
 				while (taskQue_.size() == 0)
 				{
 					if (!isPoolRunning_)
@@ -207,7 +207,7 @@ private:
 					}
 
 					if (poolMode_ == PoolMode::MODE_CACHED) {
-						// Ìõ¼ş±äÁ¿³¬Ê±·µ»Ø¡¢É¾³ı¶àÓàÏß³Ì
+						// æ¡ä»¶å˜é‡è¶…æ—¶è¿”å›ã€åˆ é™¤å¤šä½™çº¿ç¨‹
 						if (std::cv_status::timeout ==
 							notEmpty_.wait_for(lock, std::chrono::seconds(1)))
 						{
@@ -216,8 +216,8 @@ private:
 							if (duration.count() >= THREAD_MAX_IDLE_TIME
 								&& curThreadSize_ > initThreadSize_)
 							{
-								//»ØÊÕµ±Ç°Ïß³Ì
-								/* ÊıÁ¿Î¬»¤£¬ Ïß³ÌÈİÆ÷ÖĞÉ¾³ıÏß³Ì, Ïß³ÌID*/
+								//å›æ”¶å½“å‰çº¿ç¨‹
+								/* æ•°é‡ç»´æŠ¤ï¼Œ çº¿ç¨‹å®¹å™¨ä¸­åˆ é™¤çº¿ç¨‹, çº¿ç¨‹ID*/
 								threads_.erase(threadID);
 								curThreadSize_--;
 								idleThreadSize_--;
@@ -227,67 +227,67 @@ private:
 							}
 						}
 					}
-					else // fixed Ä£Ê½
+					else // fixed æ¨¡å¼
 					{
 						notEmpty_.wait(lock);
 					}
 				}
 				// get task
-				idleThreadSize_--; // ¿ÕÏĞÏß³ÌÊıÁ¿--
-				std::cout << "»ñÈ¡ÈÎÎñ³É¹¦" << std::this_thread::get_id() << std::endl;
+				idleThreadSize_--; // ç©ºé—²çº¿ç¨‹æ•°é‡--
+				std::cout << "è·å–ä»»åŠ¡æˆåŠŸ" << std::this_thread::get_id() << std::endl;
 				task = taskQue_.front();
 				taskQue_.pop();
 				taskSize_--;
 
-				//Èç¹ûÒÀÈ»ÓĞÊ£ÓàÈÎÎñ£¬Í¨ÖªÆäËûÏß³ÌÖ´ĞĞÈÎÎñ
+				//å¦‚æœä¾ç„¶æœ‰å‰©ä½™ä»»åŠ¡ï¼Œé€šçŸ¥å…¶ä»–çº¿ç¨‹æ‰§è¡Œä»»åŠ¡
 				if (!taskQue_.size() > 0)
 					notEmpty_.notify_all();
 
-				// ¿ÉÒÔ¼ÌĞøÌá½»ÈÎÎñ½øÈë¶ÓÁĞ
+				// å¯ä»¥ç»§ç»­æäº¤ä»»åŠ¡è¿›å…¥é˜Ÿåˆ—
 				notFull_.notify_all();
 			}
-			// ²Ù×÷ÍêÈÎÎñ¶ÓÁĞ¹é»¹Ëø;
+			// æ“ä½œå®Œä»»åŠ¡é˜Ÿåˆ—å½’è¿˜é”;
 			// 
-			// Ö´ĞĞÈÎÎñ exec task
+			// æ‰§è¡Œä»»åŠ¡ exec task
 			if (task != nullptr)
 			{
-				task(); // Ö´ĞĞÄäÃûº¯Êı¶ÔÏó
+				task(); // æ‰§è¡ŒåŒ¿åå‡½æ•°å¯¹è±¡
 			}
 
-			idleThreadSize_++; // ÈÎÎñ½áÊø£¬¿Õ¼äÏß³Ì++
-			lastTime = std::chrono::high_resolution_clock().now(); // ¸üĞÂÖ´ĞĞÍêÈÎÎñµÄÊ±¼ä
+			idleThreadSize_++; // ä»»åŠ¡ç»“æŸï¼Œç©ºé—´çº¿ç¨‹++
+			lastTime = std::chrono::high_resolution_clock().now(); // æ›´æ–°æ‰§è¡Œå®Œä»»åŠ¡çš„æ—¶é—´
 
 		}
 	}
 
-	//¼ì²époolÔËĞĞ×´Ì¬
+	//æ£€æŸ¥poolè¿è¡ŒçŠ¶æ€
 	bool checkRunningState() const
 	{
 		return isPoolRunning_;
 	}
 
 private:
-	std::unordered_map<int, std::unique_ptr<Thread>> threads_; // Ïß³ÌÁĞ±í
+	std::unordered_map<int, std::unique_ptr<Thread>> threads_; // çº¿ç¨‹åˆ—è¡¨
 	size_t initThreadSize_; // initialize thread number, unsigned int
 
-	std::atomic_int curThreadSize_; // µ±Ç°Ïß³ÌÊıÁ¿
-	int threadMaxThreshHold_; // Ïß³ÌÉÏÏßãĞÖµ	
-	std::atomic_int idleThreadSize_; // ¿ÕÏĞÏß³ÌÊıÁ¿
+	std::atomic_int curThreadSize_; // å½“å‰çº¿ç¨‹æ•°é‡
+	int threadMaxThreshHold_; // çº¿ç¨‹ä¸Šçº¿é˜ˆå€¼	
+	std::atomic_int idleThreadSize_; // ç©ºé—²çº¿ç¨‹æ•°é‡
 
 	// Task -> func
 	using Task = std::function<void()>; // middle class, return value unknown
 	std::queue<Task> taskQue_; // task queue, auto ptr, lengthing the life cycle of tasks
 	std::atomic_int taskSize_; // task numbers
-	int taskQueMaxThreshHold_; // ÈÎÎñ¶ÓÁĞÉÏÏŞãĞÖµ
+	int taskQueMaxThreshHold_; // ä»»åŠ¡é˜Ÿåˆ—ä¸Šé™é˜ˆå€¼
 
 	PoolMode poolMode_;
 
-	std::mutex taskQueMtx_; //ÈÎÎñ¶ÓÁĞ »¥³âËø
-	std::condition_variable notFull_; // ÈÎÎñ¶ÓÁĞÃ»Âú
-	std::condition_variable notEmpty_; // ÈÎÎñ¶ÓÁĞÃ»¿Õ
-	std::condition_variable exitCond_; // ½áÊøµÈ´ıÏß³Ì·µ»Ø
+	std::mutex taskQueMtx_; //ä»»åŠ¡é˜Ÿåˆ— äº’æ–¥é”
+	std::condition_variable notFull_; // ä»»åŠ¡é˜Ÿåˆ—æ²¡æ»¡
+	std::condition_variable notEmpty_; // ä»»åŠ¡é˜Ÿåˆ—æ²¡ç©º
+	std::condition_variable exitCond_; // ç»“æŸç­‰å¾…çº¿ç¨‹è¿”å›
 
-	std::atomic_bool isPoolRunning_; // ¹¤×÷×´Ì¬
+	std::atomic_bool isPoolRunning_; // å·¥ä½œçŠ¶æ€
 
 };
 
