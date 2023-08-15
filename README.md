@@ -8,7 +8,7 @@
   - threadpool_fin 使用future类型接收返回值，threadpool 自定义result, any, semaphore 实现接收返回值
   - 使用条件变量(condition_variable) 和互斥量(mutex) 实现线程间的通信，保证线程安全。
   - 使用unordered_map 和queue 容器分别管理线程池内的线程和用户提交的任务。
-  - GC机制，保证线程池析构时，没有线程仍在后台运行。并且设计方案解决了可能出现的死锁问题。
+  - GC机制，保证线程池析构时，所有线程池创建的线程也被析构。
 
 C++ Based threadpool
   	- Designed and developed thread pool which can be used to boost efficiency when dealing high concurrent network service or time-consuming tasks.
