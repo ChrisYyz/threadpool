@@ -3,15 +3,15 @@
 
 #include <vector>
 #include <queue>
-#include <memory> // 智能指针
-#include <atomic> // 原子操作 - 轻量锁
-#include <mutex> // 互斥锁
-#include <condition_variable> // 条件变量
+#include <memory> 
+#include <atomic> 
+#include <mutex> 
+#include <condition_variable> 
 #include <functional>
 #include <unordered_map>
 
 /*
-Ex:
+Example:
 ThreadPool pool;
 pool.start(6);
 
